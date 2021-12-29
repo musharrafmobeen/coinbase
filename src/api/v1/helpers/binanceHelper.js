@@ -1,6 +1,7 @@
 var crypto = require("crypto");
 const axios = require("axios");
 const CryptoJS = require("crypto-js");
+const NodeRSA = require("node-rsa");
 
 const methods = {
   get: "GET",
@@ -10,7 +11,7 @@ const methods = {
 };
 
 const createSignature = async (cb_access_timestamp) => {
-  const secret = process.env.COINBASE_SECRET;
+  const secret = process.env.BINANCE_API_SECRET;
   //   const requestPath = url;
   //   const methodType = methods[method];
   const message = "timestamp=" + cb_access_timestamp;
@@ -19,8 +20,17 @@ const createSignature = async (cb_access_timestamp) => {
   const hmac = crypto.createHmac("sha256", key);
   console.log(hmac);
 
-  //   const sig = hmac.update(message).digest("base64");
+  // const apiSecret = pub.TESTNET_SECRETKEY; // Your secret key
+
+  // const timestamp = await serverTimestamp().then((timestamp) => {
+  //   return timestamp;
+  // });
+
+  // let signature = sha256(apiSecret, timestamp);
+
+  // const sig = hmac.update(message).digest("hex");
   const sig = CryptoJS.HmacSHA256(message, secret).toString(CryptoJS.enc.Hex);
+  // const sig = new NodeRSA({ b: 512 });
   console.log(sig);
   return sig;
 };
@@ -33,7 +43,7 @@ const binanceRequestMethod = async (method, url, body = {}) => {
   const cb_access_sign = await createSignature(cb_access_timestamp);
   const config = {
     method: method,
-    url: `https://testnet.binance.vision/api/v3${url}?timestamp=${cb_access_timestamp}&signature=${cb_access_sign}`,
+    url: `https://testnet.binance.vision/api/v3${url}?timestamp=${cb_access_timestamp}&signature=${cb_access_sign}&symbol=BTC`,
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
@@ -43,7 +53,7 @@ const binanceRequestMethod = async (method, url, body = {}) => {
   const response = await axios(config);
   return response.data;
 
-  //   return { a: 2 };
+  return { a: 2 };
 };
 
 module.exports = { binanceRequestMethod };
